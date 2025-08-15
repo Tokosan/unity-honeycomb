@@ -17,8 +17,9 @@ public class HoneyComb : MonoBehaviour
     public void InstantiateChildren(float a, float padding, Vector3 center)
     {
         // Calculate the number of children based on the size of the honeycomb
-        List<Vector3> childPositions = CalculateChildPositions(a, padding, center);
         this.transform.position = center;
+        float centersDistance = (a + padding) * Mathf.Sqrt(3);
+        List<Vector3> childPositions = CalculateChildPositions(centersDistance);
         foreach (Vector3 pos in childPositions)
         {
             Instantiate(hexagonPrefab, pos, Quaternion.Euler(90, 0, 0), this.transform);
@@ -35,38 +36,36 @@ public class HoneyComb : MonoBehaviour
         transform.Rotate(0, angle, 0);
     }
 
-    private List<Vector3> CalculateChildPositions(float a, float padding, Vector3 center)
+    private List<Vector3> CalculateChildPositions(float centersDistance)
     {
-        float centerX = center.x;
-        float centerY = center.y;
-        float centerZ = center.z;
+        float centerX = this.transform.position.x;
+        float centerY = this.transform.position.y;
+        float centerZ = this.transform.position.z;
 
         List<Vector3> positions = new List<Vector3>();
 
-        float _a = a + padding;
+        int[] angles = new int[] {0, 120, 240};
 
         // Center child
         positions.Add(new Vector3(centerX, centerY, centerZ));
-        // Top Left
-        positions.Add(new Vector3(
-            centerX - _a * Mathf.Sqrt(3) / 2,
-            centerY,
-            centerZ + _a * 1.5f
-        ));
-        // Bottom Left
-        positions.Add(new Vector3(
-            centerX - _a * Mathf.Sqrt(3) / 2,
-            centerY,
-            centerZ - _a * 1.5f
-        ));
-        // Center Right
-        positions.Add(new Vector3(
-            centerX + _a * Mathf.Sqrt(3),
-            centerY,
-            centerZ
-        ));
+
+        foreach (int angle in angles)
+        {
+            float rad = angle * Mathf.Deg2Rad;
+            Vector3 newPos = this.transform.position + new Vector3(
+                centersDistance * Mathf.Cos(rad),
+                0,
+                centersDistance * Mathf.Sin(rad)
+            );
+            positions.Add(newPos);
+        }
 
         return positions;
+    }
+
+    private void Close()
+    {
+        
     }
 
     void Update()

@@ -8,19 +8,17 @@ public class WorldLoader : MonoBehaviour
     public float a = 10.0f;
     public float padding = 1.0f;
     private List<HoneyComb> honeyCombs = new List<HoneyComb>();
-    public int meshRows = 6;
-    public int meshColumns = 6;
+    public int meshLength = 6;
     void Start()
     {
-        List<Vector3> positions = CalculateHoneyCombCenters(meshRows, meshColumns);
-        int max = meshRows;
-        for (int i = 0; i < meshRows * meshColumns; i++)
+        List<Vector3> positions = CalculateHoneyCombCenters(meshLength);
+        for (int i = 0; i < positions.Count; i++)
         {
             if (Random.Range(0f, 1.0f) < 0.1f)
             {
                 continue; // Skip some honeycombs randomly
             }
-            GameObject honeyCombObject = new GameObject("HoneyComb_Test");
+            GameObject honeyCombObject = new GameObject("HoneyComb" + i);
             HoneyComb honeyComb = honeyCombObject.AddComponent<HoneyComb>();
             honeyComb.hexagonPrefab = hexagonPrefab;
             honeyComb.InstantiateChildren(a, padding, positions[i]);
@@ -29,14 +27,15 @@ public class WorldLoader : MonoBehaviour
         }
     }
 
-    private List<Vector3> CalculateHoneyCombCenters(int rows, int columns)
+    private List<Vector3> CalculateHoneyCombCenters(int length)
     {
+        int columns = length;
         List<Vector3> centers = new List<Vector3>();
         float _a = a + padding;
         float _m = _a * Mathf.Sqrt(3) / 2;
         Vector3 initialCenter = new Vector3(0, 0, 0);
         Vector3 rowStart = initialCenter;
-        for (int row = 0; row < rows; row++)
+        for (int row = 0; row < length; row++)
         {
             // if (row > 0 && row % 3 == 0)
             // {

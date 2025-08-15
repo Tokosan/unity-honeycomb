@@ -9,15 +9,16 @@ public class WorldLoader : MonoBehaviour
     public float padding = 1.0f;
     private List<HoneyComb> honeyCombs = new List<HoneyComb>();
     public int meshLength = 6;
+    public float closeAnimationDuration = 1.0f;
     void Start()
     {
         List<Vector3> positions = CalculateHoneyCombCenters(meshLength);
         for (int i = 0; i < positions.Count; i++)
         {
-            if (Random.Range(0f, 1.0f) < 0.1f)
-            {
-                continue; // Skip some honeycombs randomly
-            }
+            // if (Random.Range(0f, 1.0f) < 0.1f)
+            // {
+            //     continue; // Skip some honeycombs randomly
+            // }
             GameObject honeyCombObject = new GameObject("HoneyComb" + i);
             HoneyComb honeyComb = honeyCombObject.AddComponent<HoneyComb>();
             honeyComb.hexagonPrefab = hexagonPrefab;
@@ -37,11 +38,6 @@ public class WorldLoader : MonoBehaviour
         Vector3 rowStart = initialCenter;
         for (int row = 0; row < length; row++)
         {
-            // if (row > 0 && row % 3 == 0)
-            // {
-            //     rowStart.x = initialCenter.x;
-            //     rowStart.z -= _m;
-            // }
             for (int col = 0; col < columns; col++)
             {
                 Vector3 position = rowStart + new Vector3(col * (4.5f * _a), 0, col * _m);
@@ -53,42 +49,20 @@ public class WorldLoader : MonoBehaviour
         return centers;
     }
 
-    // private float counter = 0f;
-    // private float rotationSpeed = 0f;
-    // private float rotationAccel = 1;
+    private float counter = 0f;
+    int honeyCombIndex = 0;
 
     // Update is called once per frame
     void Update()
     {
-        // counter += Time.deltaTime;
-        // rotationSpeed += rotationAccel;
-        // if (Mathf.Abs(rotationSpeed) > 1000f)
-        // {
-        //     rotationAccel = -rotationAccel;
-        // }
-        // if (counter > 0.5f)
-        // {
-        //     float random = Random.Range(0f, 1.0f);
-        //     int randomHoneyCombIndex = Random.Range(0, honeyCombs.Count);
-        //     for (int i = 0; i < honeyCombs.Count; i++)
-        //     {
-        //         if (i == randomHoneyCombIndex)
-        //         {
-        //             // honeyCombs[i].isRotating = false;
-        //             honeyCombs[i].isMoving = false;
-        //         }
-        //         else
-        //         {
-        //             honeyCombs[i].isMoving = true;
-        //             honeyCombs[i].direction = new Vector3(
-        //                 Random.Range(-1f, 1f),
-        //                 0,
-        //                 Random.Range(-1f, 1f)
-        //             ).normalized;
-        //             honeyCombs[i].rotateSpeed = rotationSpeed;
-        //         }
-        //     }
-        //     counter = 0f;
-        // }
+        counter += Time.deltaTime;
+
+        if (counter > 0.2f)
+        {
+            honeyCombs[honeyCombIndex].Close(closeAnimationDuration);
+            honeyCombIndex = (honeyCombIndex + 1) % honeyCombs.Count;
+            honeyCombs[honeyCombIndex].Open(closeAnimationDuration);
+            counter = 0f;
+        }
     }
 }

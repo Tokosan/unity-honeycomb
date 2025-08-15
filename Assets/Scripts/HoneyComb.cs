@@ -11,9 +11,9 @@ public class HoneyComb : MonoBehaviour
     public GameObject[] childHexagons = new GameObject[4];
 
     // Geometry fields
-    public float a = 10.0f;
-    public float padding = 1.0f;
-    public Vector3 center = Vector3.zero;
+    public float hexagonSize = 10.0f;
+    public float hexagonSpacing = 1.0f;
+    public Vector3 position = Vector3.zero;
 
     // Flags
     public bool isRotating = false;
@@ -29,28 +29,34 @@ public class HoneyComb : MonoBehaviour
     public float rotateSpeed = 20.0f;
     public Vector3 direction = Vector3.right;
 
-    public void InstantiateChildren(float a, float padding, Vector3 center)
+    public void Instantiate()
     {
-        this.a = a;
-        this.padding = padding;
-        this.center = center;
-        this.transform.position = center;
 
-        float centersDistance = (a + padding) * Mathf.Sqrt(3);
+        float centersDistance = (hexagonSize + hexagonSpacing) * Mathf.Sqrt(3);
 
-        Debug.Log($"Creating honeycomb at {center} with centers distance {centersDistance}");
+        Debug.Log($"Creating honeycomb at {position} with centers distance {centersDistance}");
+        transform.position = position;
         List<Vector3> childPositions = CalculateChildPositions(centersDistance);
-
         int hexagonIndex = 0;
         Color[] colors = new Color[] { Color.red, Color.green, Color.blue, Color.yellow };
         foreach (Vector3 pos in childPositions)
         {
-            GameObject hexagon = Instantiate(hexagonPrefab, pos, Quaternion.Euler(90, 0, 0), transform);
-            childHexagons[hexagonIndex] = hexagon;
-            ApplyColorToHexagon(hexagon, colors[hexagonIndex]); // Apply color from array
-            hexagonIndex++;
+            if (hexagonIndex == 0 || UnityEngine.Random.Range(0f, 1f) > 0.2f)
+            {
+                GameObject hexagon = Instantiate(hexagonPrefab, pos, Quaternion.Euler(90, 0, 0), transform);
+                childHexagons[hexagonIndex] = hexagon;
+                ApplyColorToHexagon(hexagon, colors[hexagonIndex]); // Apply color from array
+                hexagonIndex++;
+            }
         }
-        transform.rotation = Quaternion.Euler(0, -30, 0);
+    }
+
+    public void Construct(GameObject hexagonPrefab, float hexagonSize, float hexagonSpacing, Vector3 position)
+    {
+        this.hexagonPrefab = hexagonPrefab;
+        this.hexagonSize = hexagonSize;
+        this.hexagonSpacing = hexagonSpacing;
+        this.position = position;
     }
 
     private void ApplyColorToHexagon(GameObject hexagon, Color colorToApply)
@@ -97,8 +103,8 @@ public class HoneyComb : MonoBehaviour
     public void Close(float duration)
     {
         if (isChildAnimating || isClosed) return; // Prevent multiple simultaneous closes
-        float initialCenterDistance = (a + padding) * Mathf.Sqrt(3);
-        float finalCenterDistance = a * Mathf.Sqrt(3);
+        float initialCenterDistance = (hexagonSize + hexagonSpacing) * Mathf.Sqrt(3);
+        float finalCenterDistance = hexagonSize * Mathf.Sqrt(3);
         StartCoroutine(ChildMovementAnimation(duration, initialCenterDistance, finalCenterDistance, () => {
             isClosed = true;
             isOpen = false;
@@ -109,8 +115,8 @@ public class HoneyComb : MonoBehaviour
     {
         // This open the honeycomb
         if (isChildAnimating || isOpen) return; // Prevent multiple simultaneous opens
-        float initialCenterDistance = a * Mathf.Sqrt(3);
-        float finalCenterDistance = (a + padding) * Mathf.Sqrt(3);
+        float initialCenterDistance = hexagonSize * Mathf.Sqrt(3);
+        float finalCenterDistance = (hexagonSize + hexagonSpacing) * Mathf.Sqrt(3);
         StartCoroutine(ChildMovementAnimation(duration, initialCenterDistance, finalCenterDistance, () => {
             isOpen = true;
             isClosed = false;

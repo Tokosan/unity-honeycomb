@@ -6,55 +6,53 @@ using System.Collections.Generic;
 
 public class HoneyComb : MonoBehaviour
 {
-    public float a = 10.0f; // arista
+    // Resources
+    public GameObject hexagonPrefab;
+    public GameObject[] childHexagons = new GameObject[4];
+
+    // Geometry fields
+    public float a = 10.0f;
     public float padding = 1.0f;
     public Vector3 center = Vector3.zero;
-    public GameObject hexagonPrefab;
+
+    // Flags
     public bool isRotating = false;
     public bool isMoving = false;
-    public float moveSpeed = 40.0f;
-    public float rotateSpeed = 20.0f;
-    public Vector3 direction = Vector3.right;
-
     private bool isChildAnimating = false;
     private bool isClosing = false;
     public bool isClosed = false;
     private bool isOpening = false;
     public bool isOpen = true;
-    // Update is called once per frame
-    /// <summary>
-    /// Creates child hexagons in a triangular pattern around a center point.
-    /// </summary>
-    /// <param name="a">The size of each hexagon (side length)</param>
-    /// <param name="padding">The spacing between hexagons</param>
-    /// <param name="center">The center point around which to create the hexagon pattern</param>
-    /// <remarks>
-    /// This method creates a pattern of 4 hexagons - one at the center and three arranged 
-    /// in an equilateral triangle around it. The distance between hexagon centers is calculated 
-    /// using the hexagon size and padding.
-    /// </remarks>
+
+    // Mechanics
+    public float moveSpeed = 40.0f;
+    public float rotateSpeed = 20.0f;
+    public Vector3 direction = Vector3.right;
+
     public void InstantiateChildren(float a, float padding, Vector3 center)
     {
         this.a = a;
         this.padding = padding;
         this.center = center;
-        // Calculate the number of children based on the size of the honeycomb
         this.transform.position = center;
+
         float centersDistance = (a + padding) * Mathf.Sqrt(3);
+
         Debug.Log($"Creating honeycomb at {center} with centers distance {centersDistance}");
         List<Vector3> childPositions = CalculateChildPositions(centersDistance);
+
         int hexagonIndex = 0;
         Color[] colors = new Color[] { Color.red, Color.green, Color.blue, Color.yellow };
         foreach (Vector3 pos in childPositions)
         {
-            GameObject hexagon = Instantiate(hexagonPrefab, pos, Quaternion.Euler(90, 0, 0), this.transform);
+            GameObject hexagon = Instantiate(hexagonPrefab, pos, Quaternion.Euler(90, 0, 0), transform);
+            childHexagons[hexagonIndex] = hexagon;
             ApplyColorToHexagon(hexagon, colors[hexagonIndex]); // Apply color from array
             hexagonIndex++;
         }
-        this.transform.rotation = Quaternion.Euler(0, -30, 0);
+        transform.rotation = Quaternion.Euler(0, -30, 0);
     }
 
-    
     private void ApplyColorToHexagon(GameObject hexagon, Color colorToApply)
     {
         Renderer hexRenderer = hexagon.GetComponent<Renderer>();
@@ -79,25 +77,17 @@ public class HoneyComb : MonoBehaviour
 
     private List<Vector3> CalculateChildPositions(float centersDistance)
     {
-        float centerX = this.transform.position.x;
-        float centerY = this.transform.position.y;
-        float centerZ = this.transform.position.z;
-
         List<Vector3> positions = new List<Vector3>();
 
-        int[] angles = new int[] {0, 120, 240};
+        int[] angles = {0, 120, 240};
 
         // Center child
-        positions.Add(new Vector3(centerX, centerY, centerZ));
+        positions.Add(transform.position);
 
         foreach (int angle in angles)
         {
-            float rad = (angle - this.transform.rotation.eulerAngles.y) * Mathf.Deg2Rad;
-            Vector3 newPos = this.transform.position + new Vector3(
-                centersDistance * Mathf.Cos(rad),
-                0,
-                centersDistance * Mathf.Sin(rad)
-            );
+            float rad = (angle - transform.rotation.eulerAngles.y) * Mathf.Deg2Rad;
+            Vector3 newPos = transform.position + (new Vector3(Mathf.Cos(rad), 0, Mathf.Sin(rad)) * centersDistance);
             positions.Add(newPos);
         }
 
@@ -127,7 +117,6 @@ public class HoneyComb : MonoBehaviour
         }));
     }
 
-
     private IEnumerator ChildMovementAnimation(float duration, float initialCenterDistance, float finalCenterDistance, Action onComplete)
     {
         isChildAnimating = true;
@@ -137,7 +126,7 @@ public class HoneyComb : MonoBehaviour
             float t = Mathf.Clamp01(elapsedTime / duration); // Normalized time (0 to 1)
             // Interpolate the center distance between initial and final states
             // Use Mathf.Lerp for linear interpolation or Mathf.SmoothStep for smoother start/end
-            float currentCenterDistance = Mathf.Lerp(initialCenterDistance, finalCenterDistance, t);
+            float currentCenterDistance = Mathf.SmoothStep(initialCenterDistance, finalCenterDistance, t);
 
             // Get the target position for this interpolation
             List<Vector3> targetPositions = CalculateChildPositions(currentCenterDistance);
@@ -192,7 +181,8 @@ public class HoneyComb : MonoBehaviour
             // Rotate the honeycomb around its center
             // Must rotate exactly 120 degrees
             // Direction
-            transform.rotation = Quaternion.Euler(0, Mathf.Lerp(initialAngle, targetAngle, t), 0);
+            float currentAngle = Mathf.SmoothStep(initialAngle, targetAngle, t);
+            transform.rotation = Quaternion.Euler(0, currentAngle, 0);
             elapsedTime += Time.deltaTime;
 
             yield return null; // Wait for the next frame

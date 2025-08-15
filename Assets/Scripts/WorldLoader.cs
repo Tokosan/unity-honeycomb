@@ -16,10 +16,6 @@ public class WorldLoader : MonoBehaviour
         List<Vector3> positions = CalculateHoneyCombCenters(meshLength);
         for (int i = 0; i < positions.Count; i++)
         {
-            // if (Random.Range(0f, 1.0f) < 0.1f)
-            // {
-            //     continue; // Skip some honeycombs randomly
-            // }
             GameObject honeyCombObject = new GameObject("HoneyComb" + i);
             HoneyComb honeyComb = honeyCombObject.AddComponent<HoneyComb>();
             honeyComb.hexagonPrefab = hexagonPrefab;
@@ -40,6 +36,10 @@ public class WorldLoader : MonoBehaviour
         {
             for (int col = 0; col < columns; col++)
             {
+                if (Random.Range(0f, 1.0f) < 0.1f)
+                {
+                    continue; // Skip some honeycombs randomly
+                }
                 Vector3 position = rowStart + new Vector3(col * (4.5f * _a), 0, col * _m);
                 centers.Add(position);
             }
@@ -60,12 +60,8 @@ public class WorldLoader : MonoBehaviour
         if (counter > timeInterval)
         {
             honeyCombIndex = Random.Range(0, honeyCombs.Count);
-            // honeyCombs[honeyCombIndex].Close(closeAnimationDuration);
-            // honeyCombs[honeyCombIndex].Open(closeAnimationDuration);
             honeyCombs[honeyCombIndex].Rotation(closeAnimationDuration);
-            honeyCombIndex = (honeyCombIndex + 1) % honeyCombs.Count;
             counter = 0f;
-
         }
     }
 }

@@ -43,13 +43,27 @@ public class HoneyComb : MonoBehaviour
         float centersDistance = (a + padding) * Mathf.Sqrt(3);
         Debug.Log($"Creating honeycomb at {center} with centers distance {centersDistance}");
         List<Vector3> childPositions = CalculateChildPositions(centersDistance);
+        int hexagonIndex = 0;
+        Color[] colors = new Color[] { Color.red, Color.green, Color.blue, Color.yellow };
         foreach (Vector3 pos in childPositions)
         {
-            Instantiate(hexagonPrefab, pos, Quaternion.Euler(90, 0, 0), this.transform);
+            GameObject hexagon = Instantiate(hexagonPrefab, pos, Quaternion.Euler(90, 0, 0), this.transform);
+            ApplyColorToHexagon(hexagon, colors[hexagonIndex]); // Apply color from array
+            hexagonIndex++;
         }
+        this.transform.rotation = Quaternion.Euler(0, -30, 0);
     }
 
     
+    private void ApplyColorToHexagon(GameObject hexagon, Color colorToApply)
+    {
+        Renderer hexRenderer = hexagon.GetComponent<Renderer>();
+        // Create a new material instance for this specific hexagon
+        // This prevents all hexagons from sharing the same material and changing color together.
+        hexRenderer.material = new Material(hexRenderer.material); 
+        hexRenderer.material.color = colorToApply;
+    }
+
     public void Move(Vector3 direction)
     {
         // This moves the whole honeycomb in the specified direction
@@ -152,17 +166,57 @@ public class HoneyComb : MonoBehaviour
         onComplete?.Invoke();
     }
 
+    public void Rotation(float duration)
+    {
+        if (isRotating) return; // Prevent multiple simultaneous rotations
+        // This has to close, rotate, and then open.
+        isRotating = true;
+        StartCoroutine(RotationAnimation(duration));
+    }
 
+    private IEnumerator RotationAnimation(float duration)
+    {
+        // 1. Close the honeycomb
+        Close(duration);
+        yield return new WaitForSeconds(duration);
+
+        // 2. Rotate the honeycomb
+        float elapsedTime = 0f;
+        int direction = UnityEngine.Random.Range(0, 2) == 0 ? -1 : 1;
+        float initialAngle = transform.eulerAngles.y;
+        float targetAngle = initialAngle + 120 * direction;
+        while (elapsedTime < duration)
+        {
+            float t = Mathf.Clamp01(elapsedTime / duration); // Normalized time (0 to 1)
+
+            // Rotate the honeycomb around its center
+            // Must rotate exactly 120 degrees
+            // Direction
+            transform.rotation = Quaternion.Euler(0, Mathf.Lerp(initialAngle, targetAngle, t), 0);
+            elapsedTime += Time.deltaTime;
+
+            yield return null; // Wait for the next frame
+        }
+
+        // Make sure it's in the final angle
+        transform.rotation = Quaternion.Euler(0, targetAngle, 0);
+
+        // 3. Open the honeycomb
+        Open(duration);
+        yield return new WaitForSeconds(duration);
+
+        isRotating = false;
+    }
 
     void Update()
     {
-        if (isMoving)
-        {
-            this.Move(direction * moveSpeed * Time.deltaTime);
-        }
-        if (isRotating)
-        {
-            this.Rotate(rotateSpeed * Time.deltaTime * 2);
-        }
+        // if (isMoving)
+        // {
+        //     this.Move(direction * moveSpeed * Time.deltaTime);
+        // }
+        // if (isRotating)
+        // {
+        //     this.Rotate(rotateSpeed * Time.deltaTime * 2);
+        // }
     }
 }

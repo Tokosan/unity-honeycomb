@@ -205,9 +205,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   hexagonPrefab: {fileID: 7646470618724610518, guid: 4d53a839e8b99d440aa9f05530277ef2, type: 3}
   a: 10
-  padding: 5
-  meshLength: 10
-  closeAnimationDuration: 1
+  padding: 4
+  meshLength: 5
+  closeAnimationDuration: 0.1
 --- !u!4 &204577805
 Transform:
   m_ObjectHideFlags: 0

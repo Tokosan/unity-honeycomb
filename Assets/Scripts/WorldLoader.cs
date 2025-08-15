@@ -10,6 +10,7 @@ public class WorldLoader : MonoBehaviour
     private List<HoneyComb> honeyCombs = new List<HoneyComb>();
     public int meshLength = 6;
     public float closeAnimationDuration = 1.0f;
+    public float timeInterval = 1.0f;
     void Start()
     {
         List<Vector3> positions = CalculateHoneyCombCenters(meshLength);
@@ -23,7 +24,6 @@ public class WorldLoader : MonoBehaviour
             HoneyComb honeyComb = honeyCombObject.AddComponent<HoneyComb>();
             honeyComb.hexagonPrefab = hexagonPrefab;
             honeyComb.InstantiateChildren(a, padding, positions[i]);
-            honeyComb.isRotating = true;
             honeyCombs.Add(honeyComb);
         }
     }
@@ -57,12 +57,15 @@ public class WorldLoader : MonoBehaviour
     {
         counter += Time.deltaTime;
 
-        if (counter > 0.2f)
+        if (counter > timeInterval)
         {
-            honeyCombs[honeyCombIndex].Close(closeAnimationDuration);
+            honeyCombIndex = Random.Range(0, honeyCombs.Count);
+            // honeyCombs[honeyCombIndex].Close(closeAnimationDuration);
+            // honeyCombs[honeyCombIndex].Open(closeAnimationDuration);
+            honeyCombs[honeyCombIndex].Rotation(closeAnimationDuration);
             honeyCombIndex = (honeyCombIndex + 1) % honeyCombs.Count;
-            honeyCombs[honeyCombIndex].Open(closeAnimationDuration);
             counter = 0f;
+
         }
     }
 }
